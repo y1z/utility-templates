@@ -136,7 +136,7 @@ public: // FUNCTIONS
     else
     {
       node* result = getNodeInIndex<StoredType>(Index);
-      result->m_var;
+      result->m_var = value;
     }
   }
 
@@ -176,7 +176,8 @@ public: // FUNCTIONS
   {
     node* currentNode = m_rootNode.mptr_next;
     size_t nodeIndex = 1u;
-    while( currentNode != mptr_firstNode)
+
+    while( currentNode->mptr_next != mptr_firstNode)
     {
       currentNode = currentNode->mptr_next;
       nodeIndex++;
@@ -198,13 +199,13 @@ public: // FUNCTIONS
   }
 
   StoredType 
-  getCopy(size_t Index = 0)
+  getCopy(size_t Index)
   {
     return Impl_getCopy<StoredType>(Index);
   }
 
   StoredType *
-  getPtr(size_t Index = 0)
+  getPtr(size_t Index)
   {
     return Impl_getPtr<StoredType>(Index);
   }
@@ -227,7 +228,7 @@ private: // FUNCTIONS
   * @bug : no known bugs
   */
   template<class StoredType > StoredType
-  Impl_getCopy(size_t Index = 0)  
+  Impl_getCopy(size_t Index)  
   {
     if(Index == 0)
       return m_rootNode.m_var;
@@ -247,7 +248,7 @@ private: // FUNCTIONS
   * @bug : no known bugs
   */
   template<class StoredType> StoredType*
-  Impl_getPtr(size_t  Index = 0) 
+  Impl_getPtr(size_t Index) 
   {
     if(Index == 0)
       return &m_rootNode.m_var;
