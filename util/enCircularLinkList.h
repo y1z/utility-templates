@@ -7,7 +7,7 @@
 * @LC     2020/Feb/08
 * @file   enCircularLinkList.h
 * @author Yhaliff Said Barraza
-* @date   2020/Feb/20
+* @date   2020/Feb/25
 * @brief  is a circular link list data structure
 *
 * @bug	   No known bugs.
@@ -29,6 +29,7 @@ public:
   enCircularLinkList() 
   {
     m_rootNode.mptr_next = &this->m_rootNode;
+    m_rootNode.mptr_prev = &this->m_rootNode;
   }
 
   /**
@@ -106,6 +107,9 @@ public:
     node*
     mptr_next = nullptr;
 
+    node*
+    mptr_prev = nullptr;
+
   };
 
 private
@@ -148,21 +152,31 @@ public: // FUNCTIONS
   template<class StoredType> void
   addNode(StoredType & value) 
   {
-    node* currentNode =  m_rootNode.mptr_next;
-    size_t nodeIndex = 1u;
-    while( currentNode->mptr_next != mptr_firstNode)
+    node* currentNode = &m_rootNode;
+    node* prevNode = &m_rootNode;
+
+    if( m_nodeCount != 0u )
     {
+      while( currentNode->mptr_next != mptr_firstNode )
+      {
+        prevNode = currentNode;
+        currentNode = currentNode->mptr_next;
+      }
+
+      currentNode->mptr_next = new node();
+      currentNode->mptr_prev = prevNode;
       currentNode = currentNode->mptr_next;
-      nodeIndex++;
+
+      currentNode->m_var = value;
+      currentNode->nodeIndex = m_nodeCount++;
+      currentNode->mptr_next = mptr_firstNode;
+    }
+    else
+    {
+      m_rootNode.m_var = value;
+      m_nodeCount++;
     }
 
-    currentNode->mptr_next = new node();
-    currentNode = currentNode->mptr_next;
-
-    currentNode->m_var = value;
-    currentNode->nodeIndex = nodeIndex;
-    currentNode->mptr_next = mptr_firstNode;
-    m_nodeCount++;
   }
 
 
@@ -174,22 +188,30 @@ public: // FUNCTIONS
   template<class StoredType> void
   addNode(StoredType && value) 
   {
-    node* currentNode = m_rootNode.mptr_next;
-    size_t nodeIndex = 1u;
+    node* currentNode = &m_rootNode;
+    node* prevNode = &m_rootNode;
 
-    while( currentNode->mptr_next != mptr_firstNode)
+    if( m_nodeCount != 0u )
     {
+      while( currentNode->mptr_next != mptr_firstNode )
+      {
+        prevNode = currentNode;
+        currentNode = currentNode->mptr_next;
+      }
+
+      currentNode->mptr_next = new node();
+      currentNode->mptr_prev = prevNode;
       currentNode = currentNode->mptr_next;
-      nodeIndex++;
+
+      currentNode->m_var = value;
+      currentNode->nodeIndex = m_nodeCount++;
+      currentNode->mptr_next = mptr_firstNode;
     }
-
-    currentNode->mptr_next = new node();
-    currentNode = currentNode->mptr_next;
-
-    currentNode->m_var = value;
-    currentNode->nodeIndex = nodeIndex;
-    currentNode->mptr_next = mptr_firstNode;
-    m_nodeCount++;
+    else
+    {
+      m_rootNode.m_var = value;
+      m_nodeCount++;
+    }
   }
 
   size_t
