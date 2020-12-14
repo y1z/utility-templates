@@ -28,8 +28,8 @@ public:
   */
   enCircularLinkList() 
   {
-    m_rootNode.mptr_next = &this->m_rootNode;
-    m_rootNode.mptr_prev = &this->m_rootNode;
+    m_rootNode.m_ptrNext = &this->m_rootNode;
+    m_rootNode.m_ptrPrev = &this->m_rootNode;
   }
 
   /**
@@ -41,18 +41,18 @@ public:
   {
     this->m_rootNode.m_var = listToCopy.m_rootNode.m_var;
 
-    node * otherListCurrentNode = listToCopy.mptr_firstNode->mptr_next;
-    node * currentNode = this->mptr_firstNode;
-    while( otherListCurrentNode != listToCopy.mptr_firstNode )
+    node * otherListCurrentNode = listToCopy.m_firstNode->m_ptrNext;
+    node * currentNode = this->m_firstNode;
+    while( otherListCurrentNode != listToCopy.m_firstNode )
     {
-      currentNode->mptr_next = new node();
-      currentNode = currentNode->mptr_next;
+      currentNode->m_ptrNext = new node();
+      currentNode = currentNode->m_ptrNext;
 
       currentNode->m_var = otherListCurrentNode->m_var;
-      currentNode->nodeIndex = otherListCurrentNode->nodeIndex;
-      otherListCurrentNode = otherListCurrentNode->mptr_next;
+      currentNode->m_nodeIndex = otherListCurrentNode->m_nodeIndex;
+      otherListCurrentNode = otherListCurrentNode->m_ptrNext;
     }
-    currentNode->mptr_next = this->mptr_firstNode;
+    currentNode->m_ptrNext = this->m_firstNode;
   }
 
   /**
@@ -62,22 +62,22 @@ public:
   enCircularLinkList(enCircularLinkList&& listToMove)
     :enCircularLinkList()
   {
-    this->m_rootNode.mptr_next = listToMove.m_rootNode.mptr_next;
-    listToMove.m_rootNode.mptr_next = &listToMove.m_rootNode;
+    this->m_rootNode.m_ptrNext = listToMove.m_rootNode.m_ptrNext;
+    listToMove.m_rootNode.m_ptrNext = &listToMove.m_rootNode;
     this->m_rootNode.m_var = std::move(this->m_rootNode.m_var);
 
   }
 
   ~enCircularLinkList()
   {
-    node* currentNode = mptr_firstNode->mptr_next;
-    node* prevNode = mptr_firstNode;
-    while( currentNode->nodeIndex != 0)
+    node* currentNode = m_firstNode->m_ptrNext;
+    node* prevNode = m_firstNode;
+    while( currentNode->m_nodeIndex != 0)
     {
       prevNode = currentNode;
-      currentNode = currentNode->mptr_next; 
+      currentNode = currentNode->m_ptrNext; 
 
-      prevNode->mptr_next = nullptr; 
+      prevNode->m_ptrNext = nullptr; 
       delete prevNode;
     }
 
@@ -99,30 +99,30 @@ public:
     * @brief : this will be used to know where the node is in the Circular Link List
     */
     size_t
-    nodeIndex = 0u;
+    m_nodeIndex = 0u;
 
     /**
     * @brief : is a pointer to the next element or the beginning of the circular list.
     */
     node*
-    mptr_next = nullptr;
+    m_ptrNext = nullptr;
 
     node*
-    mptr_prev = nullptr;
+    m_ptrPrev = nullptr;
 
   };
 
-private
+private:
   /**
   * @brief :this is the first node in the list and it's index will be 0.
-  */:
+  */
   node  m_rootNode;
 
   /**
   * @brief : this is a pointer to the first node will be used to know when
   * we have gone through the entire list
   */
-  node *const mptr_firstNode = &m_rootNode;
+  node *const m_firstNode = &m_rootNode;
 
   size_t m_nodeCount = 0u;
 
@@ -157,19 +157,19 @@ public: // FUNCTIONS
 
     if( m_nodeCount != 0u )
     {
-      while( currentNode->mptr_next != mptr_firstNode )
+      while( currentNode->m_ptrNext != m_firstNode )
       {
         prevNode = currentNode;
-        currentNode = currentNode->mptr_next;
+        currentNode = currentNode->m_ptrNext;
       }
 
-      currentNode->mptr_next = new node();
-      currentNode->mptr_prev = prevNode;
-      currentNode = currentNode->mptr_next;
+      currentNode->m_ptrNext = new node();
+      currentNode->m_ptrPrev = prevNode;
+      currentNode = currentNode->m_ptrNext;
 
       currentNode->m_var = value;
-      currentNode->nodeIndex = m_nodeCount++;
-      currentNode->mptr_next = mptr_firstNode;
+      currentNode->m_nodeIndex = m_nodeCount++;
+      currentNode->m_ptrNext = m_firstNode;
     }
     else
     {
@@ -193,19 +193,19 @@ public: // FUNCTIONS
 
     if( m_nodeCount != 0u )
     {
-      while( currentNode->mptr_next != mptr_firstNode )
+      while( currentNode->m_ptrNext != m_firstNode )
       {
         prevNode = currentNode;
-        currentNode = currentNode->mptr_next;
+        currentNode = currentNode->m_ptrNext;
       }
 
-      currentNode->mptr_next = new node();
-      currentNode->mptr_prev = prevNode;
-      currentNode = currentNode->mptr_next;
+      currentNode->m_ptrNext = new node();
+      currentNode->m_ptrPrev = prevNode;
+      currentNode = currentNode->m_ptrNext;
 
       currentNode->m_var = value;
-      currentNode->nodeIndex = m_nodeCount++;
-      currentNode->mptr_next = mptr_firstNode;
+      currentNode->m_nodeIndex = m_nodeCount++;
+      currentNode->m_ptrNext = m_firstNode;
     }
     else
     {
@@ -295,15 +295,15 @@ private: // FUNCTIONS
   getNodeInIndex(size_t Index)
   {
     if( Index == 0 )
-      return mptr_firstNode;
+      return m_firstNode;
 
-    enCircularLinkList<StoredType>::node* currentNode = m_rootNode.mptr_next;
-    while( currentNode->nodeIndex != 0 )
+    enCircularLinkList<StoredType>::node* currentNode = m_rootNode.m_ptrNext;
+    while( currentNode->m_nodeIndex != 0 )
     {
-      if(currentNode->nodeIndex == Index )
+      if(currentNode->m_nodeIndex == Index )
         return currentNode;
 
-        currentNode = currentNode->mptr_next; 
+        currentNode = currentNode->m_ptrNext; 
     }
 
     return nullptr;
