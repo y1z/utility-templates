@@ -69,7 +69,6 @@ public:
     this->m_rootNode.m_ptrNext = listToMove.m_rootNode.m_ptrNext;
     listToMove.m_rootNode.m_ptrNext = &listToMove.m_rootNode;
     this->m_rootNode.m_var = std::move(this->m_rootNode.m_var);
-
   }
 
   ~enCircularLinkList()
@@ -95,7 +94,6 @@ public:
     /**
     * @brief : this is the value that being stored in the node.
     */
-    
     StoredType
     m_var;
 
@@ -106,15 +104,30 @@ public:
     m_nodeIndex = 0u;
 
     /**
-    * @brief : is a pointer to the next element or the beginning of the circular list.
+    * @brief : is a pointer to the next element.
     */
     node*
     m_ptrNext = nullptr;
 
+    /**
+     * @brief ; it's a pointer to a previous node.
+     */
     node*
     m_ptrPrev = nullptr;
 
   };
+public:
+
+  enCircularLinkList&
+  operator=(enCircularLinkList&& other )
+  {
+    if( this != &other )
+    {
+      
+    }
+    
+    return *this;
+  }
 
 
 public: // FUNCTIONS
