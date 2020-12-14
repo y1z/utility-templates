@@ -21,6 +21,10 @@ template <class StoredType>
 class enCircularLinkList
 {
 public:
+  using type = StoredType;
+  using typePtr = StoredType*;
+  using typeRef = StoredType&;
+public:
 
   /**
   * @brief : default constructor required to make the Circular Link List.
@@ -59,7 +63,7 @@ public:
   * @brief : move constructor
   * @bug : no known bugs
   */
-  enCircularLinkList(enCircularLinkList&& listToMove)
+  enCircularLinkList(enCircularLinkList&& listToMove) noexcept
     :enCircularLinkList()
   {
     this->m_rootNode.m_ptrNext = listToMove.m_rootNode.m_ptrNext;
@@ -112,19 +116,6 @@ public:
 
   };
 
-private:
-  /**
-  * @brief :this is the first node in the list and it's index will be 0.
-  */
-  node  m_rootNode;
-
-  /**
-  * @brief : this is a pointer to the first node will be used to know when
-  * we have gone through the entire list
-  */
-  node *const m_firstNode = &m_rootNode;
-
-  size_t m_nodeCount = 0u;
 
 public: // FUNCTIONS
   /**
@@ -308,6 +299,20 @@ private: // FUNCTIONS
 
     return nullptr;
   }
+
+private:// variables
+  /**
+  * @brief :this is the first node in the list and it's index will be 0.
+  */
+  node  m_rootNode;
+
+  /**
+  * @brief : this is a pointer to the first node will be used to know when
+  * we have gone through the entire list
+  */
+  node *const m_firstNode = &m_rootNode;
+
+  size_t m_nodeCount = 0u;
 };
 
 
