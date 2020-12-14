@@ -23,6 +23,36 @@ public:
   using Type = StoredType;
   using TypePtr = StoredType*;
   using TypeRef = StoredType&;
+
+public:
+  struct node
+  {
+    /**
+    * @brief : this is the value that being stored in the node.
+    */
+    StoredType
+    m_var;
+
+    /**
+    * @brief : this will be used to know where the node is in the Circular Link List
+    */
+    int64_t
+    m_nodeIndex = INT64_C(0);
+
+    /**
+    * @brief : is a pointer to the next element.
+    */
+    node*
+    m_ptrNext = nullptr;
+
+    /**
+     * @brief ; it's a pointer to a previous node.
+     */
+    node*
+    m_ptrPrev = nullptr;
+
+  };
+
 public:
 
   /**
@@ -74,39 +104,8 @@ public:
   {
     clear();
   };
-
-  /**
-  * @brief :this will represent the individual element's in the list 
-  */
-  struct node
-  {
-    /**
-    * @brief : this is the value that being stored in the node.
-    */
-    StoredType
-    m_var;
-
-    /**
-    * @brief : this will be used to know where the node is in the Circular Link List
-    */
-    int64_t
-    m_nodeIndex = 0u;
-
-    /**
-    * @brief : is a pointer to the next element.
-    */
-    node*
-    m_ptrNext = nullptr;
-
-    /**
-     * @brief ; it's a pointer to a previous node.
-     */
-    node*
-    m_ptrPrev = nullptr;
-
-  };
+  
 public:
-
   enCircularLinkList&
   operator=(const enCircularLinkList& other)
   {
@@ -138,7 +137,8 @@ public: // FUNCTIONS
   * @bug : no known bugs
   */
   template<class StoredType> void
-  setValue(const StoredType& value, size_t Index = 0) 
+  setValue(const StoredType& value,
+           const int64_t Index = 0)
   {
     if( Index == 0 )
       m_rootNode.m_var = value;
@@ -196,7 +196,7 @@ public: // FUNCTIONS
     node* currentNode = &m_rootNode;
     node* prevNode = &m_rootNode;
 
-    if( m_nodeCount != 0u )
+    if( m_nodeCount != INT64_C( 0 ))
     {
       while( currentNode->m_ptrNext != m_firstNode )
       {
@@ -219,26 +219,26 @@ public: // FUNCTIONS
     }
   }
 
-  size_t
+  int64_t
   getNodeCount()const
   {
     return m_nodeCount;
   }
 
   StoredType 
-  getCopy(size_t Index)
+  getCopy(const int64_t Index)
   {
     return Impl_getCopy<StoredType>(Index);
   }
 
   StoredType *
-  getPtr(size_t Index)
+  getPtr(const int64_t Index)
   {
     return Impl_getPtr<StoredType>(Index);
   }
 
   StoredType&
-  getRef(size_t Index = 0)
+  getRef(const int64_t Index)
   {
     StoredType * result = Impl_getPtr<StoredType>(Index);
     assert(result != nullptr && "trying to access index hat does not exist");
@@ -271,7 +271,7 @@ private: // FUNCTIONS
   * @bug : no known bugs
   */
   template<class StoredType > StoredType
-  Impl_getCopy(size_t Index)  
+  Impl_getCopy(const int64_t Index)
   {
     if(Index == 0)
       return m_rootNode.m_var;
@@ -291,7 +291,7 @@ private: // FUNCTIONS
   * @bug : no known bugs
   */
   template<class StoredType> StoredType*
-  Impl_getPtr(size_t Index) 
+  Impl_getPtr(const int64_t Index) 
   {
     if(Index == 0)
       return &m_rootNode.m_var;
@@ -313,7 +313,7 @@ private: // FUNCTIONS
   *  @bug : no known bugs.
   */
   template<class StoredType> node*
-  getNodeInIndex(size_t Index)
+  getNodeInIndex(const int64_t Index)
   {
     if( Index == 0 )
       return m_firstNode;
@@ -336,7 +336,8 @@ private:// variables
   */
   node m_rootNode;
 
-  int64_t m_nodeCount = 0u;
+  /** @brief the amount of node in the link list.*/
+  int64_t m_nodeCount = INT64_C(0);
 
   /**
   * @brief : this is a pointer to the first node will be used to know when
@@ -344,5 +345,4 @@ private:// variables
   */
   node *const m_firstNode = &m_rootNode;
 };
-
 
