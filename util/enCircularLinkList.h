@@ -1,29 +1,28 @@
 #pragma once
 #include <iostream>
-#include <cstddef>
+#include <cstdint>
 #include <utility>
 #include <cassert>
 /**
-* @LC     2020/Feb/08
+* @LC     2020/Dec/13
 * @file   enCircularLinkList.h
 * @author Yhaliff Said Barraza
 * @date   2020/Feb/25
 * @brief  is a circular link list data structure
-*
 * @bug	   No known bugs.
 */
 
 
-  /**
-  * @brief : this link-list links the last node with the first one
-  */
+/**
+* @brief : this link-list links the last node with the first one
+*/
 template <class StoredType>
 class enCircularLinkList
 {
 public:
-  using type = StoredType;
-  using typePtr = StoredType*;
-  using typeRef = StoredType&;
+  using Type = StoredType;
+  using TypePtr = StoredType*;
+  using TypeRef = StoredType&;
 public:
 
   /**
@@ -73,17 +72,7 @@ public:
 
   ~enCircularLinkList()
   {
-    node* currentNode = m_firstNode->m_ptrNext;
-    node* prevNode = m_firstNode;
-    while( currentNode->m_nodeIndex != 0)
-    {
-      prevNode = currentNode;
-      currentNode = currentNode->m_ptrNext; 
-
-      prevNode->m_ptrNext = nullptr; 
-      delete prevNode;
-    }
-
+    clear();
   };
 
   /**
@@ -100,7 +89,7 @@ public:
     /**
     * @brief : this will be used to know where the node is in the Circular Link List
     */
-    size_t
+    int64_t
     m_nodeIndex = 0u;
 
     /**
@@ -119,13 +108,25 @@ public:
 public:
 
   enCircularLinkList&
-  operator=(enCircularLinkList&& other )
+  operator=(const enCircularLinkList& other)
+  {
+    enCircularLinkList copy(other);
+    *this = std::move(copy);
+    return *this;
+  }
+
+  enCircularLinkList&
+  operator=(enCircularLinkList&& other) noexcept
   {
     if( this != &other )
     {
-      
+      clear();
+      m_firstNode = other.m_firstNode;
+      m_nodeCount = other.m_nodeCount;
+      m_rootNode = std::move_if_noexcept(other.m_rootNode);
+      other.m_firstNode = nullptr;
+      other.m_nodeCount = -1;    
     }
-    
     return *this;
   }
 
@@ -244,6 +245,22 @@ public: // FUNCTIONS
     return  *result;
   }
 
+  void
+  clear() noexcept
+  {
+    node* currentNode = m_firstNode->m_ptrNext;
+    node* prevNode = m_firstNode;
+    while( currentNode->m_nodeIndex != 0 )
+    {
+      prevNode = currentNode;
+      currentNode = currentNode->m_ptrNext;
+
+      prevNode->m_ptrNext = nullptr;
+      delete prevNode;
+    }
+
+  }
+
 private: // FUNCTIONS
 
 
@@ -317,15 +334,15 @@ private:// variables
   /**
   * @brief :this is the first node in the list and it's index will be 0.
   */
-  node  m_rootNode;
+  node m_rootNode;
+
+  int64_t m_nodeCount = 0u;
 
   /**
   * @brief : this is a pointer to the first node will be used to know when
   * we have gone through the entire list
   */
   node *const m_firstNode = &m_rootNode;
-
-  size_t m_nodeCount = 0u;
 };
 
 
