@@ -36,3 +36,4 @@
 *.vcxproj
 *.vcxproj.*
 .[Vv][Ss]*
+[Bb]in/*
