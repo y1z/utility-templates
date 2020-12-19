@@ -37,3 +37,4 @@
 *.vcxproj.*
 .[Vv][Ss]*
 [Bb]in/*
+[Uu]nit_[Tt]ests/*
