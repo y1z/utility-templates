@@ -1,20 +1,29 @@
 #include <iostream>
+#include <climits>
 #include "util/enCircularLinkList.h"
 #include "include/operator_new_overloads.h"
 
+
+
+
 int main()
 {
+  std::cout << "memory stats before test\n\n";
+  printMemoryStats();
   {
-    enCircularLinkList<int> intList;
-
+    enCircularLinkList<std::string> intList;
+    intList.addNode(5);
+    intList.addNode(5);
     for( int32_t i = 0; i < 10; ++i )
     {
-
-      intList.addNode(1);
+      const char randomChar = std::rand() % std::numeric_limits<char>::max();
+      const std::string randomString(10, randomChar);
+      intList.addNode(randomString);
     }
-    intList.addNode(2);
+    std::cout << "\n\nmemory stats after adding all the elements to the list\n\n";
+    printMemoryStats();
   }
+  std::cout << "\n\n memory stats after destruction of circular-link-list\n\n";
+  printMemoryStats();
 
-
-  std::cout << "hello c++ 20 \n";
 }

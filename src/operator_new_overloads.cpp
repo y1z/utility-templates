@@ -4,17 +4,61 @@
 
 struct AllocData
 {
-  uintmax_t allocationCount = 0u;
-  uintmax_t deallocationCount = 0u;
+  AllocData()
+    :allocationCount(0u),
+    deallocationCount(0u),
 
-  uintmax_t totalMemoryAllocated = 0u;
-  uintmax_t totalMemoryDeallocated = 0u;
+    totalMemoryAllocated(0u),
+    totalMemoryDeallocated(0u),
 
-  uintmax_t registeredAllocationCount = 0u;
-  uintmax_t registeredDeallocationCount = 0u;
+    registeredAllocationCount(0u),
+    registeredDeallocationCount(0u),
 
-  uintmax_t registeredMemoryAllocated = 0u;
-  uintmax_t registeredMemoryDeallocated = 0u;
+    registeredMemoryAllocated(0u),
+    registeredMemoryDeallocated(0u)
+  {}
+
+  bool operator ==(const AllocData other)const
+  {
+    const uintmax_t * startOfArray = std::cbegin(arrayRepresentation);
+    const auto endOfArray = std::cend(arrayRepresentation);
+    std::size_t otherIndex = 0u;
+    while( startOfArray != endOfArray )
+    {
+      if( *startOfArray != other.arrayRepresentation[otherIndex] )
+      {
+        return false;
+      }
+      ++otherIndex;
+      ++startOfArray;
+    }
+    return true;
+  }
+
+  bool operator !=(const AllocData other)const
+  {
+    return !(*this == other);
+  }
+
+  union
+  {
+
+    struct
+    {
+      uintmax_t allocationCount;
+      uintmax_t deallocationCount;
+
+      uintmax_t totalMemoryAllocated;
+      uintmax_t totalMemoryDeallocated;
+
+      uintmax_t registeredAllocationCount;
+      uintmax_t registeredDeallocationCount;
+
+      uintmax_t registeredMemoryAllocated;
+      uintmax_t registeredMemoryDeallocated;
+    };
+    uintmax_t arrayRepresentation[8];
+  };
 }data;
 
 void
@@ -58,7 +102,26 @@ registerMemoryStats()
   data.registeredMemoryDeallocated = data.totalMemoryDeallocated;
 }
 
+bool 
+resetStats()
+{
+  const AllocData temp = AllocData();
 
+  const bool shouldDataBeReset = (data == temp);
+
+  if( shouldDataBeReset )
+  {
+    std::cout << "resetting stats\n\n";
+    auto startArray = std::begin(data.arrayRepresentation);
+    auto const endArray = std::cend(data.arrayRepresentation);
+    while( startArray != endArray )
+    {
+      *startArray = 0u;
+      ++startArray;
+    }
+  }
+  return shouldDataBeReset;
+}
 
 void*
 operator new(std::size_t AllocSize)
@@ -71,7 +134,7 @@ operator new(std::size_t AllocSize)
 }
 
 void*
-operator new[] (std::size_t AllocSize) 
+operator new[](std::size_t AllocSize)
 {
   data.allocationCount++;
   data.totalMemoryAllocated += AllocSize;
@@ -114,4 +177,5 @@ operator delete[](void* ptr,
 
   std::free(ptr);
 }
+
 

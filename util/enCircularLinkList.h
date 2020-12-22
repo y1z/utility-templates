@@ -4,7 +4,7 @@
 #include <utility>
 #include <cassert>
 /**
-* @LC     2020/Dec/13
+* @LC     2020/Dec/22
 * @file   enCircularLinkList.h
 * @author Yhaliff Said Barraza
 * @date   2020/Feb/25
@@ -25,6 +25,9 @@ public:
   using TypeRef = StoredType&;
 
 public:
+  /**
+   * @brief represents the individual elements of the link list.
+   */
   struct node
   {
     /**
@@ -155,7 +158,7 @@ public: // FUNCTIONS
   * @bug : no known bugs.
   */
   template<class StoredType> void
-  addNode(StoredType & value) 
+  addNode(const StoredType& value) 
   {
     node* currentNode = &m_rootNode;
     node* prevNode = &m_rootNode;
@@ -206,17 +209,38 @@ public: // FUNCTIONS
 
       currentNode->m_ptrNext = new node();
       currentNode->m_ptrPrev = prevNode;
+      node* refToNode = currentNode;
       currentNode = currentNode->m_ptrNext;
 
-      currentNode->m_var = value;
+      currentNode->m_var = std::forward<StoredType>(value);
       currentNode->m_nodeIndex = m_nodeCount++;
       currentNode->m_ptrNext = m_firstNode;
+      currentNode->m_ptrPrev = refToNode;  
     }
     else
     {
-      m_rootNode.m_var = value;
+      m_rootNode.m_var = std::forward<StoredType>(value);
       m_nodeCount++;
     }
+  }
+
+  bool
+  removeNode(const int64_t Index)
+  {
+    const bool isIndexValid = (Index < m_nodeCount && Index > 0);
+
+    if( isIndexValid )
+    {
+      node* nodeToRemove = getNode(Index);
+      node*nextNode = nodeToRemove->m_ptrNext;
+      node*prevNode = nodeToRemove->m_ptrPrev;
+      prevNode->m_ptrNext = nextNode;
+      nextNode->m_ptrPrev = prevNode;
+      delete nodeToRemove;
+      --m_nodeCount;
+    }
+
+    return isIndexValid;
   }
 
   int64_t
@@ -263,6 +287,29 @@ public: // FUNCTIONS
 
 private: // FUNCTIONS
 
+  /**
+  *  @brief : used to find nodes
+  *  @return : a pointer to the desired node if it exist
+  *  @param[in] Index : which index to find
+  *  @bug : no known bugs.
+  */
+  node*
+  getNode(const int64_t Index)
+  {
+    if( Index == 0 )
+      return m_firstNode;
+
+    node* currentNode = m_rootNode.m_ptrNext;
+    while( currentNode->m_nodeIndex != 0 )
+    {
+      if(currentNode->m_nodeIndex == Index )
+        return currentNode;
+
+        currentNode = currentNode->m_ptrNext; 
+    }
+
+    return nullptr;
+  }
 
   /**
   * @brief : implementation
@@ -276,14 +323,12 @@ private: // FUNCTIONS
     if(Index == 0)
       return m_rootNode.m_var;
 
-    node* result = getNodeInIndex<StoredType>(Index);
+    node* result = getNode(Index);
     if(result != nullptr)
     {
       return result->m_var;
     }
-
     return StoredType();
-   // throw std::out_of_range;
   }
 
   /**
@@ -296,7 +341,7 @@ private: // FUNCTIONS
     if(Index == 0)
       return &m_rootNode.m_var;
 
-    node* result = this->getNodeInIndex<StoredType>(Index); 
+    node* result = getNode(Index);
     if( result != nullptr  )
     {
       return &result->m_var;
@@ -306,29 +351,6 @@ private: // FUNCTIONS
   }
 
 
-  /**
-  *  @brief : used to find nodes
-  *  @return : a pointer to the desired node if it exist
-  *  @param[in] Index : which index to find
-  *  @bug : no known bugs.
-  */
-  template<class StoredType> node*
-  getNodeInIndex(const int64_t Index)
-  {
-    if( Index == 0 )
-      return m_firstNode;
-
-    enCircularLinkList<StoredType>::node* currentNode = m_rootNode.m_ptrNext;
-    while( currentNode->m_nodeIndex != 0 )
-    {
-      if(currentNode->m_nodeIndex == Index )
-        return currentNode;
-
-        currentNode = currentNode->m_ptrNext; 
-    }
-
-    return nullptr;
-  }
 
 private:// variables
   /**
