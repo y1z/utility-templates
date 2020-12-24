@@ -12,8 +12,8 @@ int main()
   printMemoryStats();
   {
     enCircularLinkList<std::string> intList;
-    intList.addNode(5);
-    intList.addNode(5);
+    intList.addNode("afdsaf");
+    intList.addNode("dafdsaf");
     for( int32_t i = 0; i < 10; ++i )
     {
       const char randomChar = std::rand() % std::numeric_limits<char>::max();

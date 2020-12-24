@@ -20,9 +20,9 @@ template <class StoredType>
 class enCircularLinkList
 {
 public:
-  using Type = StoredType;
-  using TypePtr = StoredType*;
-  using TypeRef = StoredType&;
+  using containedType = StoredType;
+  using containedTypePtr = StoredType*;
+  using containedTypeRef = StoredType&;
 
 public:
   /**
@@ -63,32 +63,18 @@ public:
   * @bug : no known bugs
   */
   enCircularLinkList() 
-  {
-    m_rootNode.m_ptrNext = &this->m_rootNode;
-    m_rootNode.m_ptrPrev = &this->m_rootNode;
-  }
+    :m_firstNode(new node()),
+    m_nodeCount(INT64_C(0))
+  {}
 
   /**
   * @brief : copy constructor
   * @bug : no known bugs
   */
   enCircularLinkList(const enCircularLinkList& listToCopy)
-    :enCircularLinkList()
   {
-    this->m_rootNode.m_var = listToCopy.m_rootNode.m_var;
-
-    node * otherListCurrentNode = listToCopy.m_firstNode->m_ptrNext;
-    node * currentNode = this->m_firstNode;
-    while( otherListCurrentNode != listToCopy.m_firstNode )
-    {
-      currentNode->m_ptrNext = new node();
-      currentNode = currentNode->m_ptrNext;
-
-      currentNode->m_var = otherListCurrentNode->m_var;
-      currentNode->m_nodeIndex = otherListCurrentNode->m_nodeIndex;
-      otherListCurrentNode = otherListCurrentNode->m_ptrNext;
-    }
-    currentNode->m_ptrNext = this->m_firstNode;
+    this->m_firstNode = listToCopy.m_firstNode;
+    listToCopy.m_firstNode = nullptr;
   }
 
   /**
@@ -98,9 +84,8 @@ public:
   enCircularLinkList(enCircularLinkList&& listToMove) noexcept
     :enCircularLinkList()
   {
-    this->m_rootNode.m_ptrNext = listToMove.m_rootNode.m_ptrNext;
-    listToMove.m_rootNode.m_ptrNext = &listToMove.m_rootNode;
-    this->m_rootNode.m_var = std::move(this->m_rootNode.m_var);
+    // TODO : IMPLEMENT MOVE
+    assert(false);
   }
 
   ~enCircularLinkList()
@@ -122,10 +107,9 @@ public:
   {
     if( this != &other )
     {
-      clear();
+      this->clear();
       m_firstNode = other.m_firstNode;
       m_nodeCount = other.m_nodeCount;
-      m_rootNode = std::move_if_noexcept(other.m_rootNode);
       other.m_firstNode = nullptr;
       other.m_nodeCount = -1;    
     }
@@ -139,15 +123,17 @@ public: // FUNCTIONS
   * @param[in] value : is the value that going to be stored by the circular link list.
   * @bug : no known bugs
   */
-  template<class StoredType> void
-  setValue(const StoredType& value,
+  void
+  setValue(const containedType& value,
            const int64_t Index = 0)
   {
     if( Index == 0 )
-      m_rootNode.m_var = value;
+    {
+      m_firstNode->m_var = value;
+    }
     else
     {
-      node* result = getNodeInIndex<StoredType>(Index);
+      node*const result = getNode(Index);
       result->m_var = value;
     }
   }
@@ -157,34 +143,18 @@ public: // FUNCTIONS
   * @param value[in] : the value that going to be stored in the new node.
   * @bug : no known bugs.
   */
-  template<class StoredType> void
-  addNode(const StoredType& value) 
+  void
+  addNode(const containedType& value) 
   {
-    node* currentNode = &m_rootNode;
-    node* prevNode = &m_rootNode;
+    node* currentNode = getNode(m_nodeCount);
+    currentNode->m_ptrNext = new node();
 
-    if( m_nodeCount != 0u )
-    {
-      while( currentNode->m_ptrNext != m_firstNode )
-      {
-        prevNode = currentNode;
-        currentNode = currentNode->m_ptrNext;
-      }
+    node* nextNode = currentNode->m_ptrNext;
+    nextNode->m_var = value;
 
-      currentNode->m_ptrNext = new node();
-      currentNode->m_ptrPrev = prevNode;
-      currentNode = currentNode->m_ptrNext;
-
-      currentNode->m_var = value;
-      currentNode->m_nodeIndex = m_nodeCount++;
-      currentNode->m_ptrNext = m_firstNode;
-    }
-    else
-    {
-      m_rootNode.m_var = value;
-      m_nodeCount++;
-    }
-
+    interconnectNodes(nextNode, m_firstNode);
+    interconnectNodes(currentNode, nextNode);
+    m_nodeCount++;
   }
 
 
@@ -193,49 +163,29 @@ public: // FUNCTIONS
   * @param value[in] : the value that going to be stored in the new node.
   * @bug : no known bugs.
   */
-  template<class StoredType> void
-  addNode(StoredType && value) 
+  void
+  addNode(containedType&& value)
   {
-    node* currentNode = &m_rootNode;
-    node* prevNode = &m_rootNode;
+    node* currentNode = getNode(m_nodeCount);
+    currentNode->m_ptrNext = new node();
 
-    if( m_nodeCount != INT64_C( 0 ))
-    {
-      while( currentNode->m_ptrNext != m_firstNode )
-      {
-        prevNode = currentNode;
-        currentNode = currentNode->m_ptrNext;
-      }
+    node* nextNode = currentNode->m_ptrNext;
+    nextNode->m_var = std::forward<containedType>(value);
 
-      currentNode->m_ptrNext = new node();
-      currentNode->m_ptrPrev = prevNode;
-      node* refToNode = currentNode;
-      currentNode = currentNode->m_ptrNext;
-
-      currentNode->m_var = std::forward<StoredType>(value);
-      currentNode->m_nodeIndex = m_nodeCount++;
-      currentNode->m_ptrNext = m_firstNode;
-      currentNode->m_ptrPrev = refToNode;  
-    }
-    else
-    {
-      m_rootNode.m_var = std::forward<StoredType>(value);
-      m_nodeCount++;
-    }
+    interconnectNodes(nextNode, m_firstNode);
+    interconnectNodes(currentNode, nextNode);
+    m_nodeCount++;
   }
 
   bool
   removeNode(const int64_t Index)
   {
-    const bool isIndexValid = (Index < m_nodeCount && Index > 0);
+    const bool isIndexValid = (Index < m_nodeCount && Index > -1);
 
     if( isIndexValid )
     {
       node* nodeToRemove = getNode(Index);
-      node*nextNode = nodeToRemove->m_ptrNext;
-      node*prevNode = nodeToRemove->m_ptrPrev;
-      prevNode->m_ptrNext = nextNode;
-      nextNode->m_ptrPrev = prevNode;
+      interconnectNodes(nodeToRemove->m_ptrPrev, nodeToRemove->m_ptrNext);
       delete nodeToRemove;
       --m_nodeCount;
     }
@@ -249,41 +199,52 @@ public: // FUNCTIONS
     return m_nodeCount;
   }
 
-  StoredType 
+  containedType
   getCopy(const int64_t Index)
   {
-    return Impl_getCopy<StoredType>(Index);
+    return Impl_getCopy(Index);
   }
 
-  StoredType *
+  containedType*
   getPtr(const int64_t Index)
   {
-    return Impl_getPtr<StoredType>(Index);
+    return Impl_getPtr(Index);
   }
 
-  StoredType&
+  containedType&
   getRef(const int64_t Index)
   {
-    StoredType * result = Impl_getPtr<StoredType>(Index);
-    assert(result != nullptr && "trying to access index hat does not exist");
+    StoredType * result = Impl_getPtr(Index);
+    assert(result != nullptr && "trying to access index that does not exist");
     return  *result;
   }
 
   void
   clear() noexcept
   {
-    node* currentNode = m_firstNode->m_ptrNext;
-    node* prevNode = m_firstNode;
-    while( currentNode->m_nodeIndex != 0 )
+    if( nullptr != m_firstNode )
     {
-      prevNode = currentNode;
-      currentNode = currentNode->m_ptrNext;
-
-      prevNode->m_ptrNext = nullptr;
-      delete prevNode;
+      node* currentNode = m_firstNode->m_ptrPrev;
+      while( currentNode != m_firstNode || nullptr != currentNode )
+      {
+        node* nextNodeToRemove = currentNode;
+        delete currentNode;
+        currentNode = nextNodeToRemove;
+      }
+      delete m_firstNode;
+      m_firstNode = nullptr;
+      m_nodeCount = INT64_C(0);
     }
-
   }
+
+  static inline void 
+  interconnectNodes(node* prevNode,
+                    node* nextNode)
+  {
+    prevNode->m_ptrNext = nextNode; 
+    nextNode->m_ptrPrev = prevNode;
+  }
+
 
 private: // FUNCTIONS
 
@@ -299,7 +260,7 @@ private: // FUNCTIONS
     if( Index == 0 )
       return m_firstNode;
 
-    node* currentNode = m_rootNode.m_ptrNext;
+    node* currentNode = m_firstNode->m_ptrNext;
     while( currentNode->m_nodeIndex != 0 )
     {
       if(currentNode->m_nodeIndex == Index )
@@ -317,11 +278,11 @@ private: // FUNCTIONS
   * @param : the index of the element
   * @bug : no known bugs
   */
-  template<class StoredType > StoredType
+  containedType
   Impl_getCopy(const int64_t Index)
   {
     if(Index == 0)
-      return m_rootNode.m_var;
+      return m_firstNode->m_var;
 
     node* result = getNode(Index);
     if(result != nullptr)
@@ -335,11 +296,11 @@ private: // FUNCTIONS
   * @returns : a references to the stored value
   * @bug : no known bugs
   */
-  template<class StoredType> StoredType*
+  containedType*
   Impl_getPtr(const int64_t Index) 
   {
     if(Index == 0)
-      return &m_rootNode.m_var;
+      return &m_firstNode->m_var;
 
     node* result = getNode(Index);
     if( result != nullptr  )
@@ -353,18 +314,13 @@ private: // FUNCTIONS
 
 
 private:// variables
-  /**
-  * @brief :this is the first node in the list and it's index will be 0.
-  */
-  node m_rootNode;
 
-  /** @brief the amount of node in the link list.*/
+  /**
+   * @brief the start of the linkList.
+  */
+  node *m_firstNode; 
+
+  /** @brief the amount of node in the link list. */
   int64_t m_nodeCount = INT64_C(0);
-
-  /**
-  * @brief : this is a pointer to the first node will be used to know when
-  * we have gone through the entire list
-  */
-  node *const m_firstNode = &m_rootNode;
 };
 
