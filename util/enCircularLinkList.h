@@ -21,15 +21,23 @@ class enCircularLinkList
 {
 public:
   using containedType = StoredType;
-  using containedTypePtr = StoredType*;
-  using containedTypeRef = StoredType&;
-
 public:
   /**
    * @brief represents the individual elements of the link list.
    */
   struct node
   {
+    node() = default;
+
+    node(const int64_t index,const containedType& containedValue)
+    :m_var(containedValue), 
+      m_nodeIndex(index)
+    {}
+
+    node(const int64_t index, containedType&& containedValue)
+      :m_var(std::forward<containedType>(containedValue)),
+      m_nodeIndex(index)
+    {}
     /**
     * @brief : this is the value that being stored in the node.
     */
@@ -63,7 +71,7 @@ public:
   * @bug : no known bugs
   */
   enCircularLinkList() 
-    :m_firstNode(new node()),
+    :m_firstNode(nullptr),
     m_nodeCount(INT64_C(0))
   {}
 
@@ -146,14 +154,22 @@ public: // FUNCTIONS
   void
   addNode(const containedType& value) 
   {
-    node* currentNode = getNode(m_nodeCount);
-    currentNode->m_ptrNext = new node();
+    if( 0 == m_nodeCount )
+    {
+      m_firstNode = new node(m_nodeCount, value);
+      interconnectNodes(m_firstNode, m_firstNode);
+    }
+    else
+    {
+      node* currentNode = getNode(m_nodeCount - 1);
+      currentNode->m_ptrNext = new node(m_nodeCount,value);
 
-    node* nextNode = currentNode->m_ptrNext;
-    nextNode->m_var = value;
+      node* nextNode = currentNode->m_ptrNext;
 
-    interconnectNodes(nextNode, m_firstNode);
-    interconnectNodes(currentNode, nextNode);
+      interconnectNodes(nextNode, m_firstNode);
+      interconnectNodes(currentNode, nextNode);
+    }
+
     m_nodeCount++;
   }
 
@@ -166,14 +182,23 @@ public: // FUNCTIONS
   void
   addNode(containedType&& value)
   {
-    node* currentNode = getNode(m_nodeCount);
-    currentNode->m_ptrNext = new node();
+    if( 0 == m_nodeCount )
+    {
+      m_firstNode = new node(m_nodeCount, value);
+      interconnectNodes(m_firstNode, m_firstNode);
+    }
+    else
+    {
+      node* currentNode = getNode(m_nodeCount - 1);
+      currentNode->m_ptrNext = new node(m_nodeCount, value);
 
-    node* nextNode = currentNode->m_ptrNext;
-    nextNode->m_var = std::forward<containedType>(value);
+      node* nextNode = currentNode->m_ptrNext;
+      nextNode->m_var = value;
 
-    interconnectNodes(nextNode, m_firstNode);
-    interconnectNodes(currentNode, nextNode);
+      interconnectNodes(nextNode, m_firstNode);
+      interconnectNodes(currentNode, nextNode);
+    }
+
     m_nodeCount++;
   }
 
@@ -189,6 +214,9 @@ public: // FUNCTIONS
       delete nodeToRemove;
       --m_nodeCount;
     }
+
+    if( 0 == m_nodeCount )
+      m_firstNode = nullptr;
 
     return isIndexValid;
   }
@@ -224,16 +252,17 @@ public: // FUNCTIONS
   {
     if( nullptr != m_firstNode )
     {
-      node* currentNode = m_firstNode->m_ptrPrev;
-      while( currentNode != m_firstNode || nullptr != currentNode )
+      while( m_firstNode != m_firstNode->m_ptrNext )
       {
-        node* nextNodeToRemove = currentNode;
-        delete currentNode;
-        currentNode = nextNodeToRemove;
+        node* toBeRemoved = m_firstNode->m_ptrNext;
+        if( nullptr != toBeRemoved->m_ptrNext )
+        {
+          interconnectNodes(m_firstNode, toBeRemoved->m_ptrNext);
+        }
+        delete toBeRemoved;
       }
       delete m_firstNode;
       m_firstNode = nullptr;
-      m_nodeCount = INT64_C(0);
     }
   }
 
