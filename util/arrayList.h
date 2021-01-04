@@ -20,7 +20,9 @@ public:
     /** @brief zero means a index is free, 1 means it's occupied. */
     std::bitset<arraySize> m_elementTracker;
   };
-  
+
+private:
+  node* m_firstNode = nullptr;
 };
 
 
